@@ -1,0 +1,12 @@
+[Unit]
+Description=Configure the Jetson smartlock Pin 33 as PWM5
+ConditionPathExists=/proc/device-tree/compatible
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/smartlock-pin33-pwm5
+RuntimeDirectory=jetson-smartlock
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

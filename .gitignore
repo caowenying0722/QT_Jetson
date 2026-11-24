@@ -1,0 +1,5 @@
+/build*/
+/assets/models/
+/assets/samples/
+/data/
+__pycache__/

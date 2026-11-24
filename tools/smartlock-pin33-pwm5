@@ -1,0 +1,28 @@
+#!/bin/sh
+set -eu
+
+status=/run/jetson-smartlock/pin33-pwm5
+register=0x02434040
+rm -f "$status"
+
+# 只使用在这块 P3768 + P3767-0000 上实测过的寄存器地址和值。
+if ! tr '\000' '\n' </proc/device-tree/compatible | grep -Fxq 'nvidia,p3768-0000+p3767-0000'; then
+    echo 'Unsupported board for Pin 33 PWM5 setup' >&2
+    exit 1
+fi
+
+current=$(/usr/bin/busybox devmem "$register" 32)
+case "$current" in
+    0x00000054) /usr/bin/busybox devmem "$register" 32 0x00000405 ;;
+    0x00000405) ;;
+    *) echo "Unexpected Pin 33 register value: $current" >&2; exit 1 ;;
+esac
+
+readback=$(/usr/bin/busybox devmem "$register" 32)
+if [ "$readback" != 0x00000405 ]; then
+    echo "Pin 33 PWM5 readback failed: $readback" >&2
+    exit 1
+fi
+# /run 每次开机重新创建。只在寄存器回读成功后记录本次启动的结果。
+printf '%s\n' "$readback" >"$status"
+echo "Pin 33 PWM5 configured: $current -> $readback"
